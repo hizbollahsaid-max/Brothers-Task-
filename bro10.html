@@ -1,0 +1,2959 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BROTHERS TASK · User Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        /* ===== GLOBAL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg: #f4f6fc;
+            --surface: rgba(255, 255, 255, 0.72);
+            --surface-border: rgba(255, 255, 255, 0.30);
+            --text-primary: #0b0b1a;
+            --text-secondary: #3e3e5c;
+            --text-muted: #6f6f8b;
+            --glass-blur: 20px;
+            --shadow: 0 20px 44px -14px rgba(0, 0, 0, 0.07);
+            --radius-lg: 28px;
+            --radius-md: 18px;
+            --radius-sm: 12px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary: #6C63FF;
+            --primary-dark: #554bdb;
+            --green: #00c896;
+            --gold: #f9b23f;
+            --red: #ff6b6b;
+            --cyan: #3fc6d9;
+            --header-h: 68px;
+        }
+        .dark {
+            --bg: #0d0d1a;
+            --surface: rgba(28, 28, 48, 0.78);
+            --surface-border: rgba(255, 255, 255, 0.06);
+            --text-primary: #efeffa;
+            --text-secondary: #b0b0ce;
+            --text-muted: #7c7c9e;
+            --shadow: 0 20px 44px -14px rgba(0, 0, 0, 0.6);
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        ul {
+            list-style: none;
+        }
+        img {
+            display: block;
+            max-width: 100%;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 20px;
+        }
+
+        /* preloader */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s, visibility 0.6s;
+        }
+        #preloader.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .loader-ring {
+            display: flex;
+            gap: 10px;
+        }
+        .loader-ring span {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: pulse-ring 1.4s ease-in-out infinite;
+        }
+        .loader-ring span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loader-ring span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        .loader-ring span:nth-child(4) {
+            animation-delay: 0.6s;
+        }
+        @keyframes pulse-ring {
+            0%,
+            100% {
+                transform: scale(0.6);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .loader-text {
+            margin-top: 24px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 22px;
+            background: linear-gradient(135deg, var(--primary), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* LAYOUT */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background: var(--surface);
+            backdrop-filter: blur(var(--glass-blur));
+            border-right: 1px solid var(--surface-border);
+            padding: 28px 18px 24px;
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: var(--shadow);
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        .sidebar-brand {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 26px;
+            padding-bottom: 24px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--surface-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sidebar-brand img {
+            height: 52px;
+            width: auto;
+            object-fit: contain;
+        }
+        .sidebar-nav {
+            flex: 1;
+        }
+        .sidebar-nav ul {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .sidebar-nav li a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 15px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .sidebar-nav li a i {
+            width: 22px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .sidebar-nav li a:hover,
+        .sidebar-nav li a.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 8px 16px -6px rgba(108, 99, 255, 0.25);
+        }
+        .sidebar-footer {
+            border-top: 1px solid var(--surface-border);
+            padding-top: 18px;
+            margin-top: 8px;
+        }
+        .user-mini {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .user-mini img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+        .user-mini-info {
+            flex: 1;
+        }
+        .user-mini-info .name {
+            font-weight: 600;
+            display: block;
+        }
+        .user-mini-info .role {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(4px);
+            z-index: 150;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* MAIN */
+        .main-content {
+            flex: 1;
+            margin-left: 0;
+            padding: 0 28px 100px;
+            transition: margin 0.3s;
+            max-width: 1440px;
+            width: 100%;
+        }
+        .top-header {
+            background: var(--surface);
+            backdrop-filter: blur(var(--glass-blur));
+            border-bottom: 1px solid var(--surface-border);
+            padding: 0 28px;
+            height: var(--header-h);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 0 -28px 24px;
+            padding-left: 28px;
+            padding-right: 28px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-left .brand-sm {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        .header-left .brand-sm img {
+            height: 36px;
+            width: auto;
+            object-fit: contain;
+        }
+        .header-left .brand-sm span:first-child {
+            color: var(--text-primary);
+        }
+        .header-left .brand-sm span:last-child {
+            color: var(--primary);
+        }
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: none;
+            padding: 4px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .header-btn {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+        .header-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .notif-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background: var(--red);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-weight: 500;
+            padding: 4px 8px 4px 4px;
+            border-radius: 40px;
+            transition: var(--transition);
+        }
+        .user-dropdown-btn:hover {
+            background: var(--surface-border);
+        }
+        .user-dropdown-btn img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+        .user-dropdown-btn .chevron {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: 2px;
+        }
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 52px;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-md);
+            padding: 8px 0;
+            min-width: 200px;
+            box-shadow: var(--shadow);
+            display: none;
+            z-index: 300;
+        }
+        .dropdown-menu.open {
+            display: block;
+        }
+        .dropdown-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .dropdown-menu a:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+        .dropdown-menu hr {
+            border: none;
+            border-top: 1px solid var(--surface-border);
+            margin: 6px 0;
+        }
+
+        /* PAGE SECTIONS */
+        .page-section {
+            display: none;
+            animation: fadeUp 0.4s ease;
+        }
+        .page-section.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+        .section-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .section-header p {
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-size: 15px;
+        }
+
+        /* GLASS CARD */
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 28px 48px -14px rgba(0, 0, 0, 0.10);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 18px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .stat-info .label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: block;
+        }
+        .stat-info .value {
+            font-size: 22px;
+            font-weight: 700;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-header h3 {
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .link-muted {
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .activity-item,
+        .notif-item {
+            display: flex;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        .activity-item:last-child,
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+        .activity-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+        .activity-content strong {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .activity-content p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .activity-content small {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .activity-type-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 1px 10px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+        .notif-dot.read {
+            background: var(--text-muted);
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .quick-btn {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-sm);
+            padding: 14px 8px;
+            text-align: center;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .quick-btn i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 6px;
+            color: var(--primary);
+        }
+        .quick-btn span {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .quick-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .quick-btn:hover i {
+            color: #fff;
+        }
+
+        .progress-item {
+            margin-bottom: 18px;
+        }
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .progress-track {
+            height: 6px;
+            border-radius: 12px;
+            background: var(--surface-border);
+            overflow: hidden;
+        }
+        .progress-track .fill {
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        /* ---- TASK TABS ---- */
+        .task-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--surface-border);
+            padding-bottom: 6px;
+        }
+        .task-tab {
+            background: transparent;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            border: 1px solid transparent;
+        }
+        .task-tab i {
+            font-size: 18px;
+        }
+        .task-tab:hover {
+            color: var(--text-primary);
+            background: var(--surface);
+            border-color: var(--surface-border);
+        }
+        .task-tab.active {
+            color: #fff;
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px -8px rgba(108, 99, 255, 0.35);
+        }
+        .task-tab .tab-count {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            padding: 0 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 2px;
+        }
+        .task-tab.active .tab-count {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .dark .task-tab.active .tab-count {
+            background: rgba(255, 255, 255, 0.20);
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 20px;
+        }
+        .task-card {
+            padding: 18px 18px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .task-card .task-icon {
+            font-size: 40px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .task-card h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+        .task-card .task-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 4px 0 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+            min-height: 36px;
+        }
+        .task-card .reward {
+            font-weight: 700;
+            color: var(--green);
+            font-size: 18px;
+        }
+        .task-card .meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 6px 0 12px;
+        }
+        .task-card .task-link-btn {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 40px;
+            padding: 4px 14px;
+            font-size: 12px;
+            color: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .task-card .task-link-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 8px 22px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: scale(0.97);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--surface-border);
+            display: none;
+            justify-content: space-around;
+            padding: 6px 0 12px;
+            z-index: 90;
+        }
+        .bottom-nav a {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .bottom-nav a i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        .bottom-nav a.active {
+            color: var(--primary);
+        }
+        @media (max-width:1023px) {
+            .bottom-nav {
+                display: flex;
+            }
+        }
+
+        /* Form & Table */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--surface-border);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.08);
+        }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .table-wrap th,
+        .table-wrap td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        .table-wrap th {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 60px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: rgba(0, 200, 150, 0.15);
+            color: var(--green);
+        }
+        .badge-warning {
+            background: rgba(249, 178, 63, 0.15);
+            color: var(--gold);
+        }
+        .badge-danger {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--red);
+        }
+        .badge-info {
+            background: rgba(63, 198, 217, 0.15);
+            color: var(--cyan);
+        }
+
+        .ref-link-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-sm);
+            padding: 4px 16px 4px 20px;
+            margin: 12px 0;
+        }
+        .ref-link-box input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: var(--text-primary);
+            padding: 10px 0;
+            outline: none;
+        }
+        .copy-btn {
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .rank-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 16px;
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--surface-border);
+        }
+        .rank-num {
+            font-weight: 700;
+            font-size: 18px;
+            width: 30px;
+            color: var(--primary);
+        }
+        .rank-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .rank-info {
+            flex: 1;
+        }
+        .rank-info .name {
+            font-weight: 600;
+        }
+        .rank-info .points {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .bonus-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0% 65%, var(--surface-border) 65% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+        }
+        .bonus-circle-inner {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+        }
+        .bonus-circle-inner small {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+        .claim-btn {
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 14px 40px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 8px;
+        }
+        .claim-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(0.97);
+        }
+        .claim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+        .toggle-switch {
+            width: 48px;
+            height: 28px;
+            background: var(--surface-border);
+            border-radius: 40px;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            transition: var(--transition);
+        }
+        .toggle-switch.active::after {
+            left: 23px;
+        }
+
+        .flex {
+            display: flex;
+        }
+        .gap-2 {
+            gap: 8px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .max-w-600 {
+            max-width: 600px;
+        }
+        .max-w-800 {
+            max-width: 800px;
+        }
+        .mt-4 {
+            margin-top: 16px;
+        }
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        /* Login Page */
+        #loginPage {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--bg);
+            padding: 20px;
+        }
+        .login-card {
+            background: var(--surface);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: var(--shadow);
+        }
+        .login-card h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .login-card .sub {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* ===== TASK MODAL ===== */
+        .task-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.25s ease;
+        }
+        .task-modal-overlay.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .task-modal {
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px 28px;
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--surface-border);
+        }
+        .task-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .task-modal .modal-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        .task-modal .modal-close {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .task-modal .modal-close:hover {
+            background: var(--red);
+            color: #fff;
+            border-color: var(--red);
+        }
+        .task-modal .modal-task-desc {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 8px 0 16px;
+            padding: 12px 16px;
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--surface-border);
+        }
+        .task-modal .modal-task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        .task-modal .modal-task-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .task-modal .modal-task-meta i {
+            color: var(--primary);
+            width: 18px;
+        }
+        .task-modal .modal-link-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-sm);
+            padding: 4px 16px 4px 20px;
+            margin: 12px 0 18px;
+        }
+        .task-modal .modal-link-row input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            color: var(--text-primary);
+            padding: 10px 0;
+            outline: none;
+        }
+        .task-modal .modal-link-row .open-link-btn {
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .task-modal .modal-link-row .open-link-btn:hover {
+            background: var(--primary-dark);
+        }
+        .task-modal .form-group label i {
+            margin-right: 6px;
+            color: var(--primary);
+        }
+        .task-modal .file-preview {
+            margin-top: 8px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            max-width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            display: none;
+        }
+        .task-modal .file-preview.show {
+            display: block;
+        }
+        .task-modal .submit-task-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            font-size: 16px;
+        }
+        .task-modal .submit-task-btn i {
+            margin-right: 8px;
+        }
+
+        /* Responsive */
+        @media (min-width:1024px) {
+            .sidebar {
+                transform: translateX(0) !important;
+                position: sticky;
+                top: 0;
+                height: 100vh;
+            }
+            .sidebar-overlay {
+                display: none !important;
+            }
+            .sidebar-toggle {
+                display: none !important;
+            }
+            .main-content {
+                margin-left: 280px;
+                padding: 0 36px 40px;
+            }
+            .top-header {
+                padding: 0 36px;
+                margin: 0 -36px 24px;
+                padding-left: 36px;
+                padding-right: 36px;
+            }
+            .header-left .brand-sm .brand-label {
+                display: flex;
+            }
+        }
+        @media (max-width:1023px) {
+            .sidebar-toggle {
+                display: flex;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .quick-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .header-left .brand-sm .brand-label {
+                display: none;
+            }
+        }
+        @media (max-width:640px) {
+            .top-header {
+                padding: 0 16px;
+                margin: 0 -16px 16px;
+                padding-left: 16px;
+                padding-right: 16px;
+                height: 60px;
+            }
+            .main-content {
+                padding: 0 16px 90px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 14px;
+            }
+            .stat-info .value {
+                font-size: 18px;
+            }
+            .quick-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            .quick-btn {
+                padding: 10px 4px;
+                font-size: 12px;
+            }
+            .quick-btn i {
+                font-size: 20px;
+            }
+            .section-header h1 {
+                font-size: 22px;
+            }
+            .task-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .sidebar {
+                width: 270px;
+                padding: 20px 14px;
+            }
+            .sidebar-brand img {
+                height: 42px;
+            }
+            .task-tabs {
+                gap: 6px;
+                padding-bottom: 4px;
+            }
+            .task-tab {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .task-tab i {
+                font-size: 15px;
+            }
+            .task-modal {
+                padding: 24px 18px;
+            }
+        }
+        @media (max-width:400px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+            .task-tab {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .task-tab i {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PRELOADER -->
+    <div id="preloader">
+        <div class="loader-ring"><span></span><span></span><span></span><span></span></div>
+        <div class="loader-text">BROTHERS TASK</div>
+    </div>
+
+    <!-- ===== LOGIN / REGISTER PAGE ===== -->
+    <div id="loginPage">
+        <div class="login-card">
+            <h2>🔐 BROTHERS TASK</h2>
+            <p class="sub">লগইন বা রেজিস্টার করুন</p>
+
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>ইমেইল</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>পাসওয়ার্ড</label>
+                    <input type="password" id="loginPass" placeholder="●●●●●●●●" />
+                </div>
+                <button class="btn-primary" style="width:100%; padding:14px;" id="loginBtn">লগইন</button>
+                <p style="text-align:center; margin-top:14px;">
+                    নতুন? <span onclick="document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block';" style="color:var(--primary); cursor:pointer;">রেজিস্টার করুন</span>
+                </p>
+            </div>
+
+            <div id="registerForm" style="display:none;">
+                <div class="form-group">
+                    <label>পূর্ণ নাম</label>
+                    <input type="text" id="regName" placeholder="জন ডো" />
+                </div>
+                <div class="form-group">
+                    <label>ইমেইল</label>
+                    <input type="email" id="regEmail" placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>ফোন (ঐচ্ছিক)</label>
+                    <input type="text" id="regPhone" placeholder="+880 1234 567890" />
+                </div>
+                <div class="form-group">
+                    <label>পাসওয়ার্ড</label>
+                    <input type="password" id="regPass" placeholder="●●●●●●●●" />
+                </div>
+                <button class="btn-primary" style="width:100%; padding:14px;" id="registerBtn">রেজিস্টার</button>
+                <p style="text-align:center; margin-top:14px;">
+                    ইতিমধ্যে আছে? <span onclick="document.getElementById('registerForm').style.display='none'; document.getElementById('loginForm').style.display='block';" style="color:var(--primary); cursor:pointer;">লগইন করুন</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <div class="app-wrapper" id="appWrapper" style="display:none;">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <img src="https://i.ibb.co/ycRcs9PZ/file-00000000e11c72078355fec3a8a0c9b1.png" alt="BROTHERS TASK" />
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" data-page="dashboard" class="active"><i class="fas fa-th-large"></i> ড্যাশবোর্ড</a></li>
+                    <li><a href="#" data-page="tasks"><i class="fas fa-tasks"></i> টাস্ক</a></li>
+                    <li><a href="#" data-page="task-history"><i class="fas fa-clock-rotate-left"></i> টাস্ক হিস্ট্রি</a></li>
+                    <li><a href="#" data-page="deposit"><i class="fas fa-wallet"></i> ডিপোজিট</a></li>
+                    <li><a href="#" data-page="withdraw"><i class="fas fa-hand-holding-usd"></i> উইথড্র</a></li>
+                    <li><a href="#" data-page="referral"><i class="fas fa-users"></i> রেফারেল</a></li>
+                    <li><a href="#" data-page="leaderboard"><i class="fas fa-trophy"></i> লিডারবোর্ড</a></li>
+                    <li><a href="#" data-page="daily-bonus"><i class="fas fa-gift"></i> ডেইলি বোনাস</a></li>
+                    <li><a href="#" data-page="notifications"><i class="fas fa-bell"></i> নোটিফিকেশন</a></li>
+                    <li><a href="#" data-page="support"><i class="fas fa-headset"></i> সাপোর্ট</a></li>
+                    <li><a href="#" data-page="faq"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                    <li><a href="#" data-page="settings"><i class="fas fa-cog"></i> সেটিংস</a></li>
+                    <li><a href="#" data-page="profile"><i class="fas fa-user"></i> প্রোফাইল</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-mini">
+                    <img id="sidebarAvatar" src="https://ui-avatars.com/api/?name=User&background=6C63FF&color=fff&size=60" alt="User" />
+                    <div class="user-mini-info">
+                        <span class="name" id="sidebarName">User</span>
+                        <span class="role" id="sidebarRole">Premium Member</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- TOP HEADER -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+                    <a href="#" data-page="dashboard" class="brand-sm">
+                        <img src="https://i.ibb.co/ycRcs9PZ/file-00000000e11c72078355fec3a8a0c9b1.png" alt="Logo" />
+                        <span class="brand-label"><span>BROTHERS</span><span>TASK</span></span>
+                    </a>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" id="notifBell"><i class="fas fa-bell"></i><span class="notif-badge" id="notifCount">0</span></button>
+                    <button class="header-btn" id="themeToggle"><i class="fas fa-moon"></i></button>
+                    <div class="user-dropdown">
+                        <button class="user-dropdown-btn" id="userDropdownBtn">
+                            <img id="headerAvatar" src="https://ui-avatars.com/api/?name=User&background=6C63FF&color=fff&size=40" alt="User" />
+                            <span class="name" id="headerName">User</span>
+                            <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="#" data-page="profile"><i class="fas fa-user"></i> প্রোফাইল</a>
+                            <a href="#" data-page="settings"><i class="fas fa-cog"></i> সেটিংস</a>
+                            <a href="#" data-page="dashboard"><i class="fas fa-dashboard"></i> ড্যাশবোর্ড</a>
+                            <hr />
+                            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> লগআউট</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ===== DASHBOARD ===== -->
+            <section class="page-section active" id="page-dashboard">
+                <div class="section-header">
+                    <div><h1>ড্যাশবোর্ড</h1><p id="welcomeMsg">স্বাগতম!</p></div>
+                    <a href="#" data-page="tasks" class="btn-primary"><i class="fas fa-plus"></i> নতুন টাস্ক</a>
+                </div>
+
+                <div class="stats-grid" id="dashboardStats">
+                    <div class="glass-card stat-card"><div class="stat-icon" style="background:rgba(108,99,255,0.12);color:var(--primary);"><i class="fas fa-coins"></i></div><div class="stat-info"><span class="label">মূল ব্যালেন্স</span><span class="value" id="mainBalance">৳০.০০</span></div></div>
+                    <div class="glass-card stat-card"><div class="stat-icon" style="background:rgba(0,200,150,0.12);color:var(--green);"><i class="fas fa-calendar-day"></i></div><div class="stat-info"><span class="label">আজকের আয়</span><span class="value" id="todayEarning">৳০.০০</span></div></div>
+                    <div class="glass-card stat-card"><div class="stat-icon" style="background:rgba(249,178,63,0.12);color:var(--gold);"><i class="fas fa-chart-line"></i></div><div class="stat-info"><span class="label">মোট আয়</span><span class="value" id="totalEarning">৳০.০০</span></div></div>
+                    <div class="glass-card stat-card"><div class="stat-icon" style="background:rgba(255,107,107,0.12);color:var(--red);"><i class="fas fa-clock"></i></div><div class="stat-info"><span class="label">পেন্ডিং ব্যালেন্স</span><span class="value" id="pendingBalance">৳০.০০</span></div></div>
+                    <div class="glass-card stat-card"><div class="stat-icon" style="background:rgba(63,198,217,0.12);color:var(--cyan);"><i class="fas fa-user-friends"></i></div><div class="stat-info"><span class="label">রেফারেল আয়</span><span class="value" id="referralEarning">৳০.০০</span></div></div>
+                    <div class="glass-card stat-card"><div class="stat-icon" style="background:rgba(108,99,255,0.12);color:var(--primary);"><i class="fas fa-list-check"></i></div><div class="stat-info"><span class="label">মোট টাস্ক</span><span class="value" id="totalTasks">0</span></div></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="glass-card"><div class="card-header"><h3><i class="fas fa-clock-rotate-left"></i> সাম্প্রতিক কার্যক্রম</h3><a href="#" class="link-muted">সব দেখুন</a></div><div id="recentActivity"><p style="color:var(--text-muted);">লোড হচ্ছে...</p></div></div>
+                    <div class="glass-card"><div class="card-header"><h3><i class="fas fa-bell"></i> নোটিফিকেশন</h3><a href="#" class="link-muted">সব দেখুন</a></div><div id="latestNotifications"><p style="color:var(--text-muted);">লোড হচ্ছে...</p></div></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="glass-card"><div class="card-header"><h3><i class="fas fa-bolt"></i> দ্রুত অ্যাকশন</h3></div><div class="quick-grid">
+                            <a href="#" data-page="tasks" class="quick-btn"><i class="fas fa-play"></i><span>টাস্ক শুরু</span></a>
+                            <a href="#" data-page="deposit" class="quick-btn"><i class="fas fa-arrow-up"></i><span>ডিপোজিট</span></a>
+                            <a href="#" data-page="withdraw" class="quick-btn"><i class="fas fa-arrow-down"></i><span>উইথড্র</span></a>
+                            <a href="#" data-page="referral" class="quick-btn"><i class="fas fa-share-nodes"></i><span>রেফারেল</span></a>
+                            <a href="#" data-page="daily-bonus" class="quick-btn"><i class="fas fa-gift"></i><span>ডেইলি বোনাস</span></a>
+                            <a href="#" data-page="support" class="quick-btn"><i class="fas fa-headset"></i><span>সাপোর্ট</span></a>
+                        </div></div>
+                    <div class="glass-card"><div class="card-header"><h3><i class="fas fa-chart-pie"></i> আপনার অগ্রগতি</h3></div>
+                        <div id="progressBars">
+                            <div class="progress-item"><div class="progress-label"><span>টাস্ক সম্পন্ন</span><span id="progressTask">0%</span></div><div class="progress-track"><div class="fill" id="progressTaskFill" style="width:0%;background:var(--primary);"></div></div></div>
+                            <div class="progress-item"><div class="progress-label"><span>দৈনিক লক্ষ্য</span><span id="progressDaily">0%</span></div><div class="progress-track"><div class="fill" id="progressDailyFill" style="width:0%;background:var(--gold);"></div></div></div>
+                            <div class="progress-item"><div class="progress-label"><span>রেফারেল টার্গেট</span><span id="progressReferral">0%</span></div><div class="progress-track"><div class="fill" id="progressReferralFill" style="width:0%;background:var(--green);"></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== TASKS ===== -->
+            <section class="page-section" id="page-tasks">
+                <div class="section-header">
+                    <div><h1>মাইক্রো টাস্ক</h1><p>একটি ট্যাব বেছে নিন এবং আয় করুন।</p></div>
+                </div>
+
+                <div class="task-tabs" id="taskTabs">
+                    <button class="task-tab active" data-category="TikTok">
+                        <i class="fab fa-tiktok"></i> TikTok <span class="tab-count" id="countTikTok">0</span>
+                    </button>
+                    <button class="task-tab" data-category="Facebook">
+                        <i class="fab fa-facebook"></i> Facebook <span class="tab-count" id="countFacebook">0</span>
+                    </button>
+                    <button class="task-tab" data-category="YouTube">
+                        <i class="fab fa-youtube"></i> YouTube <span class="tab-count" id="countYouTube">0</span>
+                    </button>
+                </div>
+
+                <div class="task-grid" id="taskList">
+                    <p style="color:var(--text-muted);">লোড হচ্ছে...</p>
+                </div>
+            </section>
+
+            <!-- ===== TASK HISTORY ===== -->
+            <section class="page-section" id="page-task-history">
+                <div class="section-header"><div><h1>টাস্ক হিস্ট্রি</h1><p>আপনার জমা দেওয়া সব টাস্ক।</p></div></div>
+                <div class="glass-card">
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+                        <button class="btn-primary" style="padding:6px 18px;font-size:13px;" data-filter="all">সব</button>
+                        <button class="btn-primary" style="padding:6px 18px;font-size:13px;background:var(--surface);color:var(--text-primary);" data-filter="pending">পেন্ডিং</button>
+                        <button class="btn-primary" style="padding:6px 18px;font-size:13px;background:var(--surface);color:var(--text-primary);" data-filter="approved">অ্যাপ্রুভ</button>
+                        <button class="btn-primary" style="padding:6px 18px;font-size:13px;background:var(--surface);color:var(--text-primary);" data-filter="rejected">রিজেক্ট</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table><thead><tr><th>টাস্ক</th><th>রিওয়ার্ড</th><th>স্ট্যাটাস</th><th>তারিখ</th></tr></thead>
+                            <tbody id="taskHistoryTable"></tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex;justify-content:center;gap:8px;margin-top:16px;">
+                        <button class="btn-primary" style="padding:6px 16px;font-size:13px;" id="historyPrev">পূর্ববর্তী</button>
+                        <span style="padding:6px 16px;background:var(--primary);color:#fff;border-radius:40px;" id="historyPage">1</span>
+                        <button class="btn-primary" style="padding:6px 16px;font-size:13px;background:var(--surface);color:var(--text-primary);" id="historyNext">পরবর্তী</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== DEPOSIT ===== -->
+            <section class="page-section" id="page-deposit">
+                <div class="section-header"><div><h1>ডিপোজিট</h1><p>আপনার অ্যাকাউন্টে টাকা যোগ করুন।</p></div></div>
+                <div class="grid-2">
+                    <div class="glass-card">
+                        <h4 style="margin-bottom:12px;">ডিপোজিট ফর্ম</h4>
+                        <div class="deposit-methods" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+                            <span class="method" style="background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 16px;display:flex;align-items:center;gap:8px;"><i class="fas fa-mobile-screen" style="color:var(--primary);"></i>Bkash</span>
+                            <span class="method" style="background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 16px;display:flex;align-items:center;gap:8px;"><i class="fas fa-mobile-screen" style="color:var(--primary);"></i>Nagad</span>
+                            <span class="method" style="background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 16px;display:flex;align-items:center;gap:8px;"><i class="fas fa-mobile-screen" style="color:var(--primary);"></i>Rocket</span>
+                            <span class="method" style="background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 16px;display:flex;align-items:center;gap:8px;"><i class="fab fa-bitcoin" style="color:var(--primary);"></i>Binance Pay</span>
+                            <span class="method" style="background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 16px;display:flex;align-items:center;gap:8px;"><i class="fas fa-coins" style="color:var(--primary);"></i>USDT</span>
+                            <span class="method" style="background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 16px;display:flex;align-items:center;gap:8px;"><i class="fas fa-building-columns" style="color:var(--primary);"></i>Bank</span>
+                        </div>
+                        <div class="form-group"><label>পরিমাণ (BDT)</label><input type="number" id="depositAmount" placeholder="০.০০" /></div>
+                        <div class="form-group"><label>পেমেন্ট মেথড</label><select id="depositMethod"><option>Bkash</option><option>Nagad</option><option>Rocket</option><option>Binance Pay</option><option>USDT</option><option>Bank</option></select></div>
+                        <div class="form-group"><label>ট্রানজেকশন আইডি</label><input type="text" id="depositTxn" placeholder="TX123456" /></div>
+                        <div class="form-group"><label>স্ক্রিনশট (ঐচ্ছিক)</label><input type="file" accept="image/*" id="depositScreenshot" /></div>
+                        <button class="btn-primary" style="width:100%;padding:14px;" id="submitDepositBtn">ডিপোজিট জমা দিন</button>
+                    </div>
+                    <div class="glass-card">
+                        <h4 style="margin-bottom:12px;">ডিপোজিট হিস্ট্রি</h4>
+                        <div class="table-wrap">
+                            <table><thead><tr><th>পরিমাণ</th><th>মেথড</th><th>স্ট্যাটাস</th><th>তারিখ</th></tr></thead>
+                                <tbody id="depositHistoryTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== WITHDRAW ===== -->
+            <section class="page-section" id="page-withdraw">
+                <div class="section-header"><div><h1>উইথড্র</h1><p>আপনার আয় তুলে নিন।</p></div></div>
+                <div class="grid-2">
+                    <div class="glass-card">
+                        <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;">
+                            <div><span style="color:var(--text-muted);">উপলব্ধ</span><div style="font-size:26px;font-weight:700;" id="withdrawAvailable">৳০.০০</div></div>
+                            <div><span style="color:var(--text-muted);">ন্যূনতম</span><div style="font-size:20px;font-weight:600;">৳১০০০</div></div>
+                            <div><span style="color:var(--text-muted);">সর্বোচ্চ</span><div style="font-size:20px;font-weight:600;">৳৫০,০০০</div></div>
+                        </div>
+                        <div class="form-group"><label>পরিমাণ (BDT)</label><input type="number" id="withdrawAmount" placeholder="০.০০" /></div>
+                        <div class="form-group"><label>উইথড্র মেথড</label><select id="withdrawMethod"><option>Bkash</option><option>Nagad</option><option>Rocket</option><option>Bank</option></select></div>
+                        <div class="form-group"><label>অ্যাকাউন্ট বিবরণ</label><input type="text" id="withdrawAccount" placeholder="অ্যাকাউন্ট নম্বর / ইমেইল" /></div>
+                        <button class="btn-primary" style="width:100%;padding:14px;" id="submitWithdrawBtn">উইথড্র জমা দিন</button>
+                    </div>
+                    <div class="glass-card">
+                        <h4 style="margin-bottom:12px;">উইথড্র হিস্ট্রি</h4>
+                        <div class="table-wrap">
+                            <table><thead><tr><th>পরিমাণ</th><th>মেথড</th><th>স্ট্যাটাস</th><th>তারিখ</th></tr></thead>
+                                <tbody id="withdrawHistoryTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== REFERRAL ===== -->
+            <section class="page-section" id="page-referral">
+                <div class="section-header"><div><h1>রেফারেল</h1><p>বন্ধুদের আমন্ত্রণ জানান এবং আয় করুন।</p></div></div>
+                <div class="glass-card" style="max-width:600px;">
+                    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px;">
+                        <div><span style="color:var(--text-muted);">মোট রেফারেল</span><div style="font-size:24px;font-weight:700;" id="totalRefers">0</div></div>
+                        <div><span style="color:var(--text-muted);">রেফারেল আয়</span><div style="font-size:24px;font-weight:700;" id="referralEarn">৳০.০০</div></div>
+                        <div><span style="color:var(--text-muted);">রেফারেল কোড</span><div style="font-size:20px;font-weight:600;color:var(--primary);" id="referralCode">BT2026</div></div>
+                    </div>
+                    <div class="ref-link-box">
+                        <input type="text" id="referralLink" value="https://brotherstask.com/ref/bt2026" readonly />
+                        <button class="copy-btn" id="copyRefBtn">কপি</button>
+                    </div>
+                    <h4 style="margin:16px 0 8px;">রেফারেল হিস্ট্রি</h4>
+                    <div class="table-wrap">
+                        <table><thead><tr><th>বন্ধু</th><th>আয়</th><th>তারিখ</th></tr></thead>
+                            <tbody id="referralHistoryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== LEADERBOARD ===== -->
+            <section class="page-section" id="page-leaderboard">
+                <div class="section-header"><div><h1>লিডারবোর্ড</h1><p>শীর্ষ আয়কারী ও পারফর্মার।</p></div></div>
+                <div class="grid-2">
+                    <div class="glass-card"><h4 style="margin-bottom:14px;">🏆 শীর্ষ আয়কারী</h4><div class="rank-list" id="topEarners"></div></div>
+                    <div class="glass-card"><h4 style="margin-bottom:14px;">⭐ শীর্ষ রেফারার</h4><div class="rank-list" id="topReferrers"></div></div>
+                </div>
+            </section>
+
+            <!-- ===== DAILY BONUS ===== -->
+            <section class="page-section" id="page-daily-bonus">
+                <div class="section-header"><div><h1>ডেইলি বোনাস</h1><p>প্রতি ২৪ ঘণ্টায় আপনার রিওয়ার্ড দাবি করুন।</p></div></div>
+                <div class="glass-card" style="max-width:480px;margin:0 auto;text-align:center;">
+                    <div class="bonus-circle">
+                        <div class="bonus-circle-inner">
+                            ৳২৫০
+                            <small>বোনাস</small>
+                        </div>
+                    </div>
+                    <p style="color:var(--text-muted);margin:4px 0 16px;">পরবর্তী দাবি <strong id="bonusTimer">২৩:৪৫:১২</strong></p>
+                    <button class="claim-btn" id="claimBonusBtn">এখন দাবি করুন</button>
+                    <div style="margin-top:18px;display:flex;justify-content:center;gap:8px;" id="bonusStreak"></div>
+                    <p style="font-size:13px;color:var(--text-muted);margin-top:6px;" id="bonusStreakText">0/7 দিন দাবি করা হয়েছে</p>
+                </div>
+            </section>
+
+            <!-- ===== NOTIFICATIONS ===== -->
+            <section class="page-section" id="page-notifications">
+                <div class="section-header"><div><h1>নোটিফিকেশন</h1><p>আপনার সব আপডেট এক জায়গায়।</p></div></div>
+                <div class="glass-card" id="notificationList"></div>
+            </section>
+
+            <!-- ===== SUPPORT ===== -->
+            <section class="page-section" id="page-support">
+                <div class="section-header"><div><h1>সাপোর্ট</h1><p>আমরা সাহায্য করতে এখানে আছি।</p></div></div>
+                <div class="grid-2">
+                    <div class="glass-card">
+                        <h4 style="margin-bottom:12px;">যোগাযোগ ফর্ম</h4>
+                        <div class="form-group"><label>বিষয়</label><input type="text" id="supportSubject" placeholder="ইস্যুর শিরোনাম" /></div>
+                        <div class="form-group"><label>বার্তা</label><textarea rows="4" id="supportMessage" style="width:100%;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--surface-border);background:var(--surface);color:var(--text-primary);font-family:inherit;"></textarea></div>
+                        <button class="btn-primary" style="width:100%;padding:14px;" id="supportSendBtn">বার্তা পাঠান</button>
+                    </div>
+                    <div class="glass-card">
+                        <h4 style="margin-bottom:12px;">যোগাযোগের তথ্য</h4>
+                        <p style="display:flex;align-items:center;gap:10px;margin:8px 0;"><i class="fas fa-envelope" style="color:var(--primary);"></i> support@brotherstask.com</p>
+                        <p style="display:flex;align-items:center;gap:10px;margin:8px 0;"><i class="fas fa-comment-dots" style="color:var(--primary);"></i> লাইভ চ্যাট (২৪/৭)</p>
+                        <p style="display:flex;align-items:center;gap:10px;margin:8px 0;"><i class="fas fa-clock" style="color:var(--primary);"></i> ১ ঘণ্টার মধ্যে জবাব</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== FAQ ===== -->
+            <section class="page-section" id="page-faq">
+                <div class="section-header"><div><h1>FAQ</h1><p>সচরাচর জিজ্ঞাসিত প্রশ্ন।</p></div></div>
+                <div class="glass-card" style="max-width:800px;" id="faqList">
+                    <div style="padding:12px 0;border-bottom:1px solid var(--surface-border);"><strong>কিভাবে আয় করব?</strong><p style="color:var(--text-secondary);margin-top:4px;">টাস্ক পেজে গিয়ে মাইক্রো টাস্ক সম্পূর্ণ করুন।</p></div>
+                    <div style="padding:12px 0;border-bottom:1px solid var(--surface-border);"><strong>ন্যূনতম উইথড্র কত?</strong><p style="color:var(--text-secondary);margin-top:4px;">ন্যূনতম উইথড্র ৳১০০০।</p></div>
+                    <div style="padding:12px 0;border-bottom:1px solid var(--surface-border);"><strong>অ্যাপ্রুভ হতে কত সময় লাগে?</strong><p style="color:var(--text-secondary);margin-top:4px;">সাধারণত ২৪ ঘণ্টার মধ্যে।</p></div>
+                    <div style="padding:12px 0;"><strong>রেফারেল প্রোগ্রাম?</strong><p style="color:var(--text-secondary);margin-top:4px;">আপনার রেফারেলের আয়ের ১০% পাবেন।</p></div>
+                </div>
+            </section>
+
+            <!-- ===== SETTINGS ===== -->
+            <section class="page-section" id="page-settings">
+                <div class="section-header"><div><h1>সেটিংস</h1><p>আপনার অভিজ্ঞতা কাস্টমাইজ করুন।</p></div></div>
+                <div class="glass-card" style="max-width:600px;">
+                    <div class="toggle-row"><span>ডার্ক মোড</span><div class="toggle-switch active" id="settingsThemeToggle"></div></div>
+                    <div class="toggle-row"><span>ভাষা (ডেমো)</span><select style="padding:4px 12px;border-radius:40px;border:1px solid var(--surface-border);background:var(--surface);color:var(--text-primary);"><option>বাংলা</option><option>English</option></select></div>
+                    <div class="toggle-row"><span>নোটিফিকেশন</span><div class="toggle-switch active" id="settingsNotifToggle"></div></div>
+                    <div class="toggle-row"><span>লগআউট</span><button class="btn-primary" style="padding:6px 20px;font-size:13px;" id="settingsLogoutBtn">লগআউট</button></div>
+                </div>
+            </section>
+
+            <!-- ===== PROFILE ===== -->
+            <section class="page-section" id="page-profile">
+                <div class="section-header"><div><h1>প্রোফাইল</h1><p>আপনার ব্যক্তিগত তথ্য।</p></div></div>
+                <div class="glass-card" style="max-width:640px;">
+                    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+                        <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=6C63FF&color=fff&size=120" alt="Profile" style="border-radius:50%;border:4px solid var(--primary);" />
+                        <div>
+                            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                                <button class="btn-primary" style="padding:6px 20px;" id="editProfileBtn">প্রোফাইল এডিট</button>
+                                <button class="btn-primary" style="padding:6px 20px;background:var(--surface);color:var(--text-primary);" id="changePassBtn">পাসওয়ার্ড পরিবর্তন</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px;">
+                        <div><span style="color:var(--text-muted);">পূর্ণ নাম</span><div style="font-weight:600;" id="profileName">জন ডো</div></div>
+                        <div><span style="color:var(--text-muted);">ইউজারনেম</span><div style="font-weight:600;" id="profileUsername">@username</div></div>
+                        <div><span style="color:var(--text-muted);">ইমেইল</span><div style="font-weight:600;" id="profileEmail">user@example.com</div></div>
+                        <div><span style="color:var(--text-muted);">ফোন</span><div style="font-weight:600;" id="profilePhone">+880 1234 567890</div></div>
+                        <div><span style="color:var(--text-muted);">দেশ</span><div style="font-weight:600;" id="profileCountry">বাংলাদেশ</div></div>
+                        <div><span style="color:var(--text-muted);">যোগদানের তারিখ</span><div style="font-weight:600;" id="profileJoinDate">--</div></div>
+                        <div><span style="color:var(--text-muted);">ইউজার আইডি</span><div style="font-weight:600;" id="profileUserId">#BT-0000</div></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- BOTTOM NAV -->
+        <nav class="bottom-nav">
+            <a href="#" data-page="dashboard" class="active"><i class="fas fa-th-large"></i><span>হোম</span></a>
+            <a href="#" data-page="tasks"><i class="fas fa-tasks"></i><span>টাস্ক</span></a>
+            <a href="#" data-page="deposit"><i class="fas fa-wallet"></i><span>ডিপোজিট</span></a>
+            <a href="#" data-page="withdraw"><i class="fas fa-hand-holding-usd"></i><span>উইথড্র</span></a>
+            <a href="#" data-page="profile"><i class="fas fa-user"></i><span>প্রোফাইল</span></a>
+        </nav>
+    </div>
+
+    <!-- ===== TASK SUBMISSION MODAL ===== -->
+    <div class="task-modal-overlay" id="taskModalOverlay">
+        <div class="task-modal">
+            <div class="modal-header">
+                <h2 id="modalTaskTitle">টাস্ক</h2>
+                <button class="modal-close" id="modalCloseBtn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-task-meta">
+                <span><i class="fas fa-tag"></i> <span id="modalTaskCategory">—</span></span>
+                <span><i class="fas fa-coins" style="color:var(--green);"></i> <span id="modalTaskReward">৳০.০০</span></span>
+                <span><i class="fas fa-clock"></i> <span id="modalTaskDuration">—</span></span>
+                <span><i class="fas fa-signal"></i> <span id="modalTaskDifficulty">—</span></span>
+            </div>
+            <div class="modal-task-desc" id="modalTaskDesc">বিবরণ নেই।</div>
+
+            <div class="modal-link-row">
+                <input type="text" id="modalTaskLinkInput" value="" readonly />
+                <button class="open-link-btn" id="modalOpenLinkBtn"><i class="fas fa-external-link-alt"></i> ওপেন</button>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--surface-border);margin:12px 0 16px;" />
+
+            <div class="form-group">
+                <label><i class="fas fa-image"></i> স্ক্রিনশট আপলোড করুন (প্রয়োজনীয়)</label>
+                <input type="file" accept="image/*" id="modalScreenshotInput" />
+                <img class="file-preview" id="modalScreenshotPreview" alt="প্রিভিউ" />
+            </div>
+
+            <button class="btn-primary submit-task-btn" id="modalSubmitBtn"><i class="fas fa-paper-plane"></i> টাস্ক জমা দিন</button>
+            <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px;">টাস্ক সম্পূর্ণ করার পর স্ক্রিনশট আপলোড করে জমা দিন।</p>
+        </div>
+    </div>
+
+    <!-- ===== FIREBASE SDK ===== -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ============================================================
+        //  🔥 FIREBASE CONFIG
+        // ============================================================
+        import { initializeApp } from "firebase/app";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp, increment } from "firebase/firestore";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChOPRbrpIpEeebdfhTlffHPEHnLWjdMKg",
+            authDomain: "brothers-task.firebaseapp.com",
+            projectId: "brothers-task",
+            storageBucket: "brothers-task.firebasestorage.app",
+            messagingSenderId: "520462514187",
+            appId: "1:520462514187:web:84a93d69c63bfd8bb2ef0e",
+            measurementId: "G-T9R95HL9MB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ============================================================
+        //  DOM রেফারেন্স
+        // ============================================================
+        const $ = (id) => document.getElementById(id);
+        const loginPage = $('loginPage');
+        const appWrapper = $('appWrapper');
+        const loginForm = $('loginForm');
+        const registerForm = $('registerForm');
+        const loginBtn = $('loginBtn');
+        const registerBtn = $('registerBtn');
+        const logoutBtn = $('logoutBtn');
+        const settingsLogoutBtn = $('settingsLogoutBtn');
+
+        // Modal elements
+        const modalOverlay = $('taskModalOverlay');
+        const modalCloseBtn = $('modalCloseBtn');
+        const modalTaskTitle = $('modalTaskTitle');
+        const modalTaskCategory = $('modalTaskCategory');
+        const modalTaskReward = $('modalTaskReward');
+        const modalTaskDuration = $('modalTaskDuration');
+        const modalTaskDifficulty = $('modalTaskDifficulty');
+        const modalTaskDesc = $('modalTaskDesc');
+        const modalTaskLinkInput = $('modalTaskLinkInput');
+        const modalOpenLinkBtn = $('modalOpenLinkBtn');
+        const modalScreenshotInput = $('modalScreenshotInput');
+        const modalScreenshotPreview = $('modalScreenshotPreview');
+        const modalSubmitBtn = $('modalSubmitBtn');
+
+        // ============================================================
+        //  অথেন্টিকেশন ফাংশন
+        // ============================================================
+        async function registerUser() {
+            const name = $('regName').value.trim();
+            const email = $('regEmail').value.trim();
+            const phone = $('regPhone').value.trim();
+            const pass = $('regPass').value;
+            if (!name || !email || !pass) return alert('সব তথ্য দিন!');
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = cred.user;
+                await setDoc(doc(db, "users", user.uid), {
+                    name: name,
+                    email: email,
+                    phone: phone || '',
+                    balance: 0,
+                    totalEarned: 0,
+                    role: 'user',
+                    createdAt: serverTimestamp(),
+                    referralCode: 'BT' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                    referredBy: null,
+                    dailyBonusStreak: 0,
+                    lastBonusClaim: null,
+                    tasksCompleted: 0,
+                    pendingBalance: 0,
+                    referralCount: 0,
+                    referralEarnings: 0
+                });
+                alert('✅ অ্যাকাউন্ট তৈরি হয়েছে!');
+                location.reload();
+            } catch (e) {
+                alert('❌ রেজিস্ট্রেশন ব্যর্থ: ' + e.message);
+            }
+        }
+
+        async function loginUser() {
+            const email = $('loginEmail').value.trim();
+            const pass = $('loginPass').value;
+            if (!email || !pass) return alert('ইমেইল ও পাসওয়ার্ড দিন!');
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                alert('✅ লগইন সফল!');
+                location.reload();
+            } catch (e) {
+                alert('❌ লগইন ব্যর্থ: ' + e.message);
+            }
+        }
+
+        async function logoutUser() {
+            await signOut(auth);
+            alert('লগআউট হয়েছে');
+            location.reload();
+        }
+
+        loginBtn.addEventListener('click', loginUser);
+        registerBtn.addEventListener('click', registerUser);
+        logoutBtn.addEventListener('click', (e) => { e.preventDefault();
+            logoutUser(); });
+        settingsLogoutBtn.addEventListener('click', logoutUser);
+
+        ['loginEmail', 'loginPass'].forEach(id => document.getElementById(id).addEventListener('keydown', (e) => { if (e.key === 'Enter')
+                loginUser(); }));
+        ['regName', 'regEmail', 'regPhone', 'regPass'].forEach(id => document.getElementById(id).addEventListener('keydown', (e) => { if (e
+                    .key === 'Enter') registerUser(); }));
+
+        // ============================================================
+        //  অথেন্টিকেশন স্টেট লিসেনার
+        // ============================================================
+        let currentUser = null;
+        let userData = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const docSnap = await getDoc(doc(db, "users", user.uid));
+                if (docSnap.exists()) {
+                    userData = docSnap.data();
+                    loginPage.style.display = 'none';
+                    appWrapper.style.display = 'flex';
+
+                    const name = userData.name || 'User';
+                    document.querySelectorAll('#sidebarName, #headerName').forEach(el => el.textContent = name);
+                    document.querySelectorAll('#sidebarAvatar, #headerAvatar, #profileAvatar').forEach(el => {
+                        el.src =
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6C63FF&color=fff&size=60`;
+                    });
+                    $('profileName').textContent = name;
+                    $('profileUsername').textContent = '@' + (userData.username || name.toLowerCase().replace(/\s/g, ''));
+                    $('profileEmail').textContent = userData.email || '';
+                    $('profilePhone').textContent = userData.phone || 'N/A';
+                    $('profileUserId').textContent = '#BT-' + user.uid.slice(0, 6).toUpperCase();
+                    if (userData.createdAt) {
+                        const d = userData.createdAt.toDate ? userData.createdAt.toDate() : new Date(userData.createdAt);
+                        $('profileJoinDate').textContent = d.toLocaleDateString('bn-BD');
+                    }
+                    $('welcomeMsg').textContent = `স্বাগতম, ${name}!`;
+
+                    const refCode = userData.referralCode || 'BT' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                    $('referralCode').textContent = refCode;
+                    $('referralLink').value = `https://brotherstask.com/ref/${refCode}`;
+
+                    loadDashboardData();
+                    loadTasks();
+                    loadTaskHistory();
+                    loadDepositHistory();
+                    loadWithdrawHistory();
+                    loadReferralHistory();
+                    loadLeaderboard();
+                    loadNotifications();
+                    loadDailyBonus();
+                    loadRecentActivity();
+                    loadLatestNotifications();
+                } else {
+                    await setDoc(doc(db, "users", user.uid), {
+                        name: user.displayName || 'User',
+                        email: user.email,
+                        phone: '',
+                        balance: 0,
+                        totalEarned: 0,
+                        role: 'user',
+                        createdAt: serverTimestamp(),
+                        referralCode: 'BT' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                        referredBy: null,
+                        dailyBonusStreak: 0,
+                        lastBonusClaim: null,
+                        tasksCompleted: 0,
+                        pendingBalance: 0,
+                        referralCount: 0,
+                        referralEarnings: 0
+                    });
+                    location.reload();
+                }
+            } else {
+                loginPage.style.display = 'flex';
+                appWrapper.style.display = 'none';
+            }
+        });
+
+        // ============================================================
+        //  ড্যাশবোর্ড - ইউজার ব্যালেন্স (রিয়েল-টাইম)
+        // ============================================================
+        function loadDashboardData() {
+            if (!currentUser) return;
+            const userRef = doc(db, "users", currentUser.uid);
+            onSnapshot(userRef, (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    userData = data;
+                    $('mainBalance').textContent = '৳' + (data.balance || 0).toFixed(2);
+                    $('totalEarning').textContent = '৳' + (data.totalEarned || 0).toFixed(2);
+                    $('pendingBalance').textContent = '৳' + (data.pendingBalance || 0).toFixed(2);
+                    $('referralEarning').textContent = '৳' + (data.referralEarnings || 0).toFixed(2);
+                    $('totalTasks').textContent = data.tasksCompleted || 0;
+                    $('withdrawAvailable').textContent = '৳' + (data.balance || 0).toFixed(2);
+
+                    const completed = data.tasksCompleted || 0;
+                    const goal = 50;
+                    const pct = Math.min(100, Math.round((completed / goal) * 100));
+                    $('progressTask').textContent = pct + '%';
+                    $('progressTaskFill').style.width = pct + '%';
+                    $('progressDaily').textContent = '65%';
+                    $('progressDailyFill').style.width = '65%';
+                    const refPct = Math.min(100, Math.round(((data.referralCount || 0) / 20) * 100));
+                    $('progressReferral').textContent = refPct + '%';
+                    $('progressReferralFill').style.width = refPct + '%';
+                }
+            });
+        }
+
+        // ============================================================
+        //  ড্যাশবোর্ড - সাম্প্রতিক কার্যক্রম
+        // ============================================================
+        let recentActivitiesCache = { tasks: [], deposits: [], withdrawals: [] };
+
+        function renderRecentActivity() {
+            const container = $('recentActivity');
+            const all = [];
+
+            recentActivitiesCache.tasks.forEach(item => {
+                all.push({
+                    type: 'task',
+                    id: item.id,
+                    title: item.taskTitle || 'টাস্ক',
+                    amount: item.reward || 0,
+                    status: item.status || 'pending',
+                    time: item.createdAt,
+                    raw: item
+                });
+            });
+
+            recentActivitiesCache.deposits.forEach(item => {
+                all.push({
+                    type: 'deposit',
+                    id: item.id,
+                    title: 'ডিপোজিট',
+                    amount: item.amount || 0,
+                    status: item.status || 'pending',
+                    time: item.createdAt,
+                    raw: item,
+                    method: item.method || ''
+                });
+            });
+
+            recentActivitiesCache.withdrawals.forEach(item => {
+                all.push({
+                    type: 'withdrawal',
+                    id: item.id,
+                    title: 'উইথড্র',
+                    amount: item.amount || 0,
+                    status: item.status || 'pending',
+                    time: item.createdAt,
+                    raw: item,
+                    method: item.method || ''
+                });
+            });
+
+            all.sort((a, b) => {
+                const ta = a.time?.toDate?.() || new Date(0);
+                const tb = b.time?.toDate?.() || new Date(0);
+                return tb - ta;
+            });
+
+            const top = all.slice(0, 5);
+
+            if (top.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);">কোনো কার্যক্রম নেই।</p>';
+                return;
+            }
+
+            let html = '';
+            top.forEach(item => {
+                const timeStr = item.time?.toDate?.()?.toLocaleString('bn-BD') || '--';
+                const statusMap = {
+                    'pending': { label: 'পেন্ডিং', cls: 'badge-warning' },
+                    'approved': { label: 'অ্যাপ্রুভ', cls: 'badge-success' },
+                    'rejected': { label: 'রিজেক্ট', cls: 'badge-danger' }
+                };
+                const st = statusMap[item.status] || statusMap['pending'];
+                const statusLabel = st.label;
+                const statusCls = st.cls;
+
+                let icon = 'fa-clock';
+                let iconColor = 'var(--gold)';
+                let typeLabel = '';
+                let detail = '';
+
+                if (item.type === 'task') {
+                    icon = 'fa-list-check';
+                    iconColor = 'var(--primary)';
+                    typeLabel = 'টাস্ক';
+                    detail = item.title;
+                } else if (item.type === 'deposit') {
+                    icon = 'fa-arrow-up';
+                    iconColor = 'var(--green)';
+                    typeLabel = 'ডিপোজিট';
+                    detail = item.method ? `${item.method}` : '';
+                } else if (item.type === 'withdrawal') {
+                    icon = 'fa-arrow-down';
+                    iconColor = 'var(--red)';
+                    typeLabel = 'উইথড্র';
+                    detail = item.method ? `${item.method}` : '';
+                }
+
+                const amountStr = '৳' + (item.amount || 0).toFixed(2);
+
+                html += `
+                        <div class="activity-item">
+                            <span class="activity-icon" style="background:${iconColor}22;color:${iconColor};">
+                                <i class="fas ${icon}"></i>
+                            </span>
+                            <div class="activity-content">
+                                <strong>
+                                    <span class="activity-type-badge" style="background:${iconColor}22;color:${iconColor};">
+                                        ${typeLabel}
+                                    </span>
+                                    ${detail || item.title}
+                                </strong>
+                                <p>
+                                    <span class="badge ${statusCls}">${statusLabel}</span>
+                                    · ${amountStr}
+                                    ${detail && item.type !== 'task' ? '· '+detail : ''}
+                                </p>
+                                <small>${timeStr}</small>
+                            </div>
+                        </div>
+                    `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function loadRecentActivity() {
+            if (!currentUser) return;
+
+            const qTasks = query(
+                collection(db, "taskSubmissions"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc"),
+                limit(10)
+            );
+            onSnapshot(qTasks, (snapshot) => {
+                const items = [];
+                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+                recentActivitiesCache.tasks = items;
+                renderRecentActivity();
+            });
+
+            const qDeposits = query(
+                collection(db, "deposits"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc"),
+                limit(10)
+            );
+            onSnapshot(qDeposits, (snapshot) => {
+                const items = [];
+                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+                recentActivitiesCache.deposits = items;
+                renderRecentActivity();
+            });
+
+            const qWithdrawals = query(
+                collection(db, "withdrawals"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc"),
+                limit(10)
+            );
+            onSnapshot(qWithdrawals, (snapshot) => {
+                const items = [];
+                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+                recentActivitiesCache.withdrawals = items;
+                renderRecentActivity();
+            });
+        }
+
+        // ============================================================
+        //  ড্যাশবোর্ড - সর্বশেষ নোটিফিকেশন
+        // ============================================================
+        function loadLatestNotifications() {
+            if (!currentUser) return;
+            const q = query(
+                collection(db, "notifications"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc"),
+                limit(3)
+            );
+            onSnapshot(q, (snapshot) => {
+                const container = $('latestNotifications');
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color:var(--text-muted);">কোনো নোটিফিকেশন নেই।</p>';
+                    return;
+                }
+                let html = '';
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const isRead = data.read || false;
+                    html += `
+                            <div class="notif-item">
+                                <span class="notif-dot ${isRead ? 'read' : ''}"></span>
+                                <div>
+                                    <strong>${data.title || 'নোটিফিকেশন'}</strong>
+                                    <p>${data.body || ''}</p>
+                                    <small>${data.createdAt?.toDate?.().toLocaleString('bn-BD') || '--'}</small>
+                                </div>
+                            </div>
+                        `;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        // ============================================================
+        //  টাস্ক - এখন মডাল সহ
+        // ============================================================
+        let allTasks = [];
+        let selectedCategory = 'TikTok';
+        let currentModalTask = null;
+
+        function loadTasks() {
+            const q = query(collection(db, "tasks"), where("status", "==", "active"));
+            onSnapshot(q, (snapshot) => {
+                allTasks = [];
+                const counts = { TikTok: 0, Facebook: 0, YouTube: 0 };
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const cat = data.category || '';
+                    allTasks.push({ id: doc.id, ...data });
+                    if (cat === 'TikTok') counts.TikTok++;
+                    else if (cat === 'Facebook') counts.Facebook++;
+                    else if (cat === 'YouTube') counts.YouTube++;
+                });
+                $('countTikTok').textContent = counts.TikTok;
+                $('countFacebook').textContent = counts.Facebook;
+                $('countYouTube').textContent = counts.YouTube;
+                renderTasks(selectedCategory);
+            });
+        }
+
+        function renderTasks(category) {
+            const container = $('taskList');
+            const filtered = allTasks.filter(t => t.category === category);
+            if (filtered.length === 0) {
+                container.innerHTML =
+                    `<p style="color:var(--text-muted);">${category} ক্যাটাগরিতে কোনো অ্যাক্টিভ টাস্ক নেই।</p>`;
+                return;
+            }
+            const iconMap = {
+                'TikTok': 'fab fa-tiktok',
+                'Facebook': 'fab fa-facebook',
+                'YouTube': 'fab fa-youtube'
+            };
+            const colorMap = {
+                'TikTok': '#00f2ea',
+                'Facebook': '#1877f2',
+                'YouTube': '#ff0000'
+            };
+            let html = '';
+            filtered.forEach((task) => {
+                const icon = iconMap[task.category] || 'fas fa-tasks';
+                const color = colorMap[task.category] || 'var(--primary)';
+                const desc = task.description || 'বিবরণ নেই';
+                const link = task.link || '#';
+                const duration = task.duration || '২ মিনিট';
+                const difficulty = task.difficulty || 'মাঝারি';
+                html += `
+                        <div class="glass-card task-card">
+                            <div class="task-icon" style="color:${color};"><i class="${icon}"></i></div>
+                            <h4>${task.title || 'টাস্ক'}</h4>
+                            <div class="task-desc">${desc}</div>
+                            <div class="reward">৳${(task.reward || 0).toFixed(2)}</div>
+                            <div class="meta">⏱ ${duration} · ${difficulty}</div>
+                            <button class="task-link-btn" data-link="${link}" data-taskid="${task.id}">
+                                <i class="fas fa-external-link-alt"></i> লিংক দেখুন
+                            </button>
+                            <button class="btn-primary start-task-btn" data-taskid="${task.id}">শুরু</button>
+                        </div>
+                    `;
+            });
+            container.innerHTML = html;
+
+            // "লিংক দেখুন" — খোলা লিংক নতুন ট্যাবে
+            container.querySelectorAll('.task-link-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const link = this.dataset.link;
+                    if (link && link !== '#') {
+                        window.open(link, '_blank');
+                    } else {
+                        alert('এই টাস্কের জন্য কোনো লিংক নেই।');
+                    }
+                });
+            });
+
+            // "শুরু" — মডাল খোলা
+            container.querySelectorAll('.start-task-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.dataset.taskid;
+                    const task = allTasks.find(t => t.id === taskId);
+                    if (!task) return alert('টাস্ক খুঁজে পাওয়া যায়নি!');
+                    if (!currentUser) return alert('লগইন করুন!');
+                    openTaskModal(task);
+                });
+            });
+        }
+
+        document.querySelectorAll('.task-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                selectedCategory = this.dataset.category;
+                renderTasks(selectedCategory);
+            });
+        });
+
+        // ============================================================
+        //  টাস্ক মডাল
+        // ============================================================
+        function openTaskModal(task) {
+            currentModalTask = task;
+            modalTaskTitle.textContent = task.title || 'টাস্ক';
+            modalTaskCategory.textContent = task.category || '—';
+            modalTaskReward.textContent = '৳' + (task.reward || 0).toFixed(2);
+            modalTaskDuration.textContent = task.duration || '—';
+            modalTaskDifficulty.textContent = task.difficulty || '—';
+            modalTaskDesc.textContent = task.description || 'বিবরণ নেই।';
+            modalTaskLinkInput.value = task.link || '#';
+            modalScreenshotInput.value = '';
+            modalScreenshotPreview.classList.remove('show');
+            modalScreenshotPreview.src = '';
+            modalSubmitBtn.disabled = false;
+            modalSubmitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> টাস্ক জমা দিন';
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTaskModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            currentModalTask = null;
+        }
+
+        modalCloseBtn.addEventListener('click', closeTaskModal);
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) closeTaskModal();
+        });
+
+        // ওপেন লিংক
+        modalOpenLinkBtn.addEventListener('click', function() {
+            const link = modalTaskLinkInput.value;
+            if (link && link !== '#') {
+                window.open(link, '_blank');
+            } else {
+                alert('এই টাস্কের জন্য কোনো লিংক নেই।');
+            }
+        });
+
+        // স্ক্রিনশট প্রিভিউ
+        modalScreenshotInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) {
+                modalScreenshotPreview.classList.remove('show');
+                modalScreenshotPreview.src = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                modalScreenshotPreview.src = e.target.result;
+                modalScreenshotPreview.classList.add('show');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // টাস্ক সাবমিট (মডাল থেকে)
+        modalSubmitBtn.addEventListener('click', async function() {
+            if (!currentModalTask) return alert('কোনো টাস্ক নির্বাচিত নেই!');
+            if (!currentUser) return alert('লগইন করুন!');
+
+            const file = modalScreenshotInput.files[0];
+            if (!file) {
+                alert('দয়া করে স্ক্রিনশট আপলোড করুন!');
+                return;
+            }
+
+            // base64 এ কনভার্ট
+            let screenshotBase64 = '';
+            try {
+                const reader = new FileReader();
+                const data = await new Promise((resolve) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                screenshotBase64 = data;
+            } catch (e) {
+                alert('ছবি পড়তে সমস্যা: ' + e.message);
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> জমা দেওয়া হচ্ছে...';
+
+            try {
+                await addDoc(collection(db, "taskSubmissions"), {
+                    userId: currentUser.uid,
+                    userName: userData?.name || 'User',
+                    taskId: currentModalTask.id,
+                    taskTitle: currentModalTask.title || 'টাস্ক',
+                    taskLink: currentModalTask.link || '',
+                    reward: currentModalTask.reward || 0,
+                    category: currentModalTask.category || '',
+                    status: 'pending',
+                    screenshot: screenshotBase64,
+                    createdAt: serverTimestamp()
+                });
+
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, {
+                    tasksCompleted: increment(1),
+                    pendingBalance: increment(currentModalTask.reward || 0)
+                });
+
+                alert(`✅ "${currentModalTask.title}" টাস্ক সাবমিট করা হয়েছে! অনুমোদনের অপেক্ষায়।`);
+                closeTaskModal();
+            } catch (e) {
+                alert('❌ টাস্ক সাবমিট ব্যর্থ: ' + e.message);
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-paper-plane"></i> টাস্ক জমা দিন';
+            }
+        });
+
+        // ============================================================
+        //  টাস্ক হিস্ট্রি
+        // ============================================================
+        function loadTaskHistory() {
+            if (!currentUser) return;
+            const q = query(
+                collection(db, "taskSubmissions"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc")
+            );
+            onSnapshot(q, (snapshot) => {
+                const tbody = $('taskHistoryTable');
+                if (snapshot.empty) {
+                    tbody.innerHTML =
+                        '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">কোনো টাস্ক জমা দেওয়া হয়নি।</td></tr>';
+                    return;
+                }
+                let html = '';
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const statusClass = {
+                        'pending': 'badge-warning',
+                        'approved': 'badge-success',
+                        'rejected': 'badge-danger'
+                    } [data.status] || 'badge-warning';
+                    html += `
+                            <tr>
+                                <td>${data.taskTitle || 'টাস্ক'}</td>
+                                <td>৳${data.reward?.toFixed(2) || '০.০০'}</td>
+                                <td><span class="badge ${statusClass}">${data.status || 'পেন্ডিং'}</span></td>
+                                <td>${data.createdAt?.toDate?.().toLocaleDateString('bn-BD') || '--'}</td>
+                            </tr>
+                        `;
+                });
+                tbody.innerHTML = html;
+            });
+        }
+
+        // ============================================================
+        //  ডিপোজিট হিস্ট্রি
+        // ============================================================
+        function loadDepositHistory() {
+            if (!currentUser) return;
+            const q = query(
+                collection(db, "deposits"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc")
+            );
+            onSnapshot(q,
+                (snapshot) => {
+                    const tbody = $('depositHistoryTable');
+                    if (!tbody) return;
+                    if (snapshot.empty) {
+                        tbody.innerHTML =
+                        '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">কোনো ডিপোজিট নেই।</td></tr>';
+                        return;
+                    }
+                    let html = '';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const statusClass = {
+                            'pending': 'badge-warning',
+                            'approved': 'badge-success',
+                            'rejected': 'badge-danger'
+                        } [data.status] || 'badge-warning';
+                        html += `
+                                <tr>
+                                    <td>৳${data.amount?.toFixed(2)}</td>
+                                    <td>${data.method || ''}</td>
+                                    <td><span class="badge ${statusClass}">${data.status || 'পেন্ডিং'}</span></td>
+                                    <td>${data.createdAt?.toDate?.().toLocaleDateString('bn-BD') || '--'}</td>
+                                </tr>
+                            `;
+                    });
+                    tbody.innerHTML = html;
+                }
+            );
+        }
+
+        // ============================================================
+        //  উইথড্র হিস্ট্রি
+        // ============================================================
+        function loadWithdrawHistory() {
+            if (!currentUser) return;
+            const q = query(
+                collection(db, "withdrawals"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc")
+            );
+            onSnapshot(q,
+                (snapshot) => {
+                    const tbody = $('withdrawHistoryTable');
+                    if (!tbody) return;
+                    if (snapshot.empty) {
+                        tbody.innerHTML =
+                        '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">কোনো উইথড্র নেই।</td></tr>';
+                        return;
+                    }
+                    let html = '';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const statusClass = {
+                            'pending': 'badge-warning',
+                            'approved': 'badge-success',
+                            'rejected': 'badge-danger'
+                        } [data.status] || 'badge-warning';
+                        html += `
+                                <tr>
+                                    <td>৳${data.amount?.toFixed(2)}</td>
+                                    <td>${data.method || ''}</td>
+                                    <td><span class="badge ${statusClass}">${data.status || 'পেন্ডিং'}</span></td>
+                                    <td>${data.createdAt?.toDate?.().toLocaleDateString('bn-BD') || '--'}</td>
+                                </tr>
+                            `;
+                    });
+                    tbody.innerHTML = html;
+                }
+            );
+        }
+
+        // ============================================================
+        //  রেফারেল হিস্ট্রি
+        // ============================================================
+        function loadReferralHistory() {
+            if (!currentUser) return;
+            const q = query(
+                collection(db, "referrals"),
+                where("referrerId", "==", currentUser.uid),
+                orderBy("createdAt", "desc")
+            );
+            onSnapshot(q, (snapshot) => {
+                const tbody = $('referralHistoryTable');
+                let totalRefs = 0;
+                let totalEarn = 0;
+                if (snapshot.empty) {
+                    tbody.innerHTML =
+                    '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">কোনো রেফারেল নেই।</td></tr>';
+                } else {
+                    let html = '';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        totalRefs++;
+                        totalEarn += data.earnedAmount || 0;
+                        html += `
+                                <tr>
+                                    <td>${data.refereeName || 'বন্ধু'}</td>
+                                    <td>৳${(data.earnedAmount || 0).toFixed(2)}</td>
+                                    <td>${data.createdAt?.toDate?.().toLocaleDateString('bn-BD') || '--'}</td>
+                                </tr>
+                            `;
+                    });
+                    tbody.innerHTML = html;
+                }
+                $('totalRefers').textContent = totalRefs;
+                $('referralEarn').textContent = '৳' + totalEarn.toFixed(2);
+            });
+        }
+
+        // ============================================================
+        //  লিডারবোর্ড
+        // ============================================================
+        function loadLeaderboard() {
+            const q1 = query(collection(db, "users"), orderBy("totalEarned", "desc"), limit(5));
+            getDocs(q1).then((snap) => {
+                const container = $('topEarners');
+                if (snap.empty) {
+                    container.innerHTML = '<p style="color:var(--text-muted);">কোনো ডেটা নেই।</p>';
+                    return;
+                }
+                let html = '';
+                let rank = 1;
+                snap.forEach((doc) => {
+                    const data = doc.data();
+                    const name = data.name || 'User';
+                    const initial = name.charAt(0).toUpperCase();
+                    html += `
+                            <div class="rank-item">
+                                <span class="rank-num">${rank}</span>
+                                <div class="rank-avatar">${initial}</div>
+                                <div class="rank-info">
+                                    <span class="name">${name}</span>
+                                    <span class="points">৳${(data.totalEarned || 0).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        `;
+                    rank++;
+                });
+                container.innerHTML = html;
+            });
+
+            const q2 = query(collection(db, "users"), orderBy("referralCount", "desc"), limit(5));
+            getDocs(q2).then((snap) => {
+                const container = $('topReferrers');
+                if (snap.empty) {
+                    container.innerHTML = '<p style="color:var(--text-muted);">কোনো ডেটা নেই।</p>';
+                    return;
+                }
+                let html = '';
+                let rank = 1;
+                snap.forEach((doc) => {
+                    const data = doc.data();
+                    const name = data.name || 'User';
+                    const initial = name.charAt(0).toUpperCase();
+                    html += `
+                            <div class="rank-item">
+                                <span class="rank-num">${rank}</span>
+                                <div class="rank-avatar">${initial}</div>
+                                <div class="rank-info">
+                                    <span class="name">${name}</span>
+                                    <span class="points">${data.referralCount || 0} রেফারেল</span>
+                                </div>
+                            </div>
+                        `;
+                    rank++;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        // ============================================================
+        //  নোটিফিকেশন পেজ
+        // ============================================================
+        function loadNotifications() {
+            if (!currentUser) return;
+            const q = query(
+                collection(db, "notifications"),
+                where("userId", "==", currentUser.uid),
+                orderBy("createdAt", "desc"),
+                limit(20)
+            );
+            onSnapshot(q, (snapshot) => {
+                const container = $('notificationList');
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="color:var(--text-muted);">কোনো নোটিফিকেশন নেই।</p>';
+                    return;
+                }
+                let html = '';
+                let unread = 0;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const isRead = data.read || false;
+                    if (!isRead) unread++;
+                    html += `
+                            <div class="notif-item">
+                                <span class="notif-dot ${isRead ? 'read' : ''}"></span>
+                                <div>
+                                    <strong>${data.title || 'নোটিফিকেশন'}</strong>
+                                    <p>${data.body || ''}</p>
+                                    <small>${data.createdAt?.toDate?.().toLocaleString('bn-BD') || '--'}</small>
+                                </div>
+                            </div>
+                        `;
+                });
+                container.innerHTML = html;
+                $('notifCount').textContent = unread;
+            });
+        }
+
+        // ============================================================
+        //  ডেইলি বোনাস
+        // ============================================================
+        function loadDailyBonus() {
+            const streak = userData?.dailyBonusStreak || 0;
+            const container = $('bonusStreak');
+            let html = '';
+            for (let i = 0; i < 7; i++) {
+                const active = i < streak ? 'var(--primary)' : 'var(--surface-border)';
+                html += `<span style="width:10px;height:10px;border-radius:50%;background:${active};"></span>`;
+            }
+            container.innerHTML = html;
+            $('bonusStreakText').textContent = `${streak}/7 দিন দাবি করা হয়েছে`;
+
+            let timeLeft = 23 * 3600 + 45 * 60 + 12;
+            const timerEl = $('bonusTimer');
+            setInterval(() => {
+                if (timeLeft > 0) timeLeft--;
+                const h = String(Math.floor(timeLeft / 3600)).padStart(2, '0');
+                const m = String(Math.floor((timeLeft % 3600) / 60)).padStart(2, '0');
+                const s = String(timeLeft % 60).padStart(2, '0');
+                timerEl.textContent = `${h}:${m}:${s}`;
+            }, 1000);
+
+            $('claimBonusBtn').addEventListener('click', async function() {
+                if (!currentUser) return alert('লগইন করুন!');
+                try {
+                    const userRef = doc(db, "users", currentUser.uid);
+                    await updateDoc(userRef, {
+                        balance: increment(250),
+                        totalEarned: increment(250),
+                        dailyBonusStreak: (userData?.dailyBonusStreak || 0) + 1,
+                        lastBonusClaim: serverTimestamp()
+                    });
+                    this.textContent = '✅ দাবি করা হয়েছে!';
+                    this.disabled = true;
+                    setTimeout(() => {
+                        this.textContent = 'এখন দাবি করুন';
+                        this.disabled = false;
+                    }, 3000);
+                } catch (e) {
+                    alert('❌ ব্যর্থ: ' + e.message);
+                }
+            });
+        }
+
+        // ============================================================
+        //  ডিপোজিট সাবমিট
+        // ============================================================
+        $('submitDepositBtn').addEventListener('click', async function() {
+            if (!currentUser) return alert('লগইন করুন!');
+            const amount = parseFloat($('depositAmount').value);
+            const method = $('depositMethod').value;
+            const txnId = $('depositTxn').value.trim();
+            if (!amount || amount <= 0) return alert('সঠিক পরিমাণ দিন!');
+            if (!txnId) return alert('ট্রানজেকশন আইডি দিন!');
+            try {
+                await addDoc(collection(db, "deposits"), {
+                    userId: currentUser.uid,
+                    userName: userData?.name || 'User',
+                    amount: amount,
+                    method: method,
+                    status: 'pending',
+                    txnId: txnId,
+                    createdAt: serverTimestamp()
+                });
+                alert('✅ ডিপোজিট রিকোয়েস্ট জমা দেওয়া হয়েছে!');
+                $('depositAmount').value = '';
+                $('depositTxn').value = '';
+            } catch (e) {
+                alert('❌ ব্যর্থ: ' + e.message);
+            }
+        });
+
+        // ============================================================
+        //  উইথড্র সাবমিট
+        // ============================================================
+        $('submitWithdrawBtn').addEventListener('click', async function() {
+            if (!currentUser) return alert('লগইন করুন!');
+            const amount = parseFloat($('withdrawAmount').value);
+            const method = $('withdrawMethod').value;
+            const account = $('withdrawAccount').value.trim();
+            if (!amount || amount <= 0) return alert('সঠিক পরিমাণ দিন!');
+            if (!account) return alert('অ্যাকাউন্ট বিবরণ দিন!');
+            if (amount > (userData?.balance || 0)) return alert('পর্যাপ্ত ব্যালেন্স নেই!');
+            try {
+                await addDoc(collection(db, "withdrawals"), {
+                    userId: currentUser.uid,
+                    userName: userData?.name || 'User',
+                    amount: amount,
+                    method: method,
+                    accountDetails: account,
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                });
+                alert('✅ উইথড্র রিকোয়েস্ট জমা দেওয়া হয়েছে!');
+                $('withdrawAmount').value = '';
+                $('withdrawAccount').value = '';
+            } catch (e) {
+                alert('❌ ব্যর্থ: ' + e.message);
+            }
+        });
+
+        // ============================================================
+        //  কপি রেফারেল লিংক
+        // ============================================================
+        $('copyRefBtn').addEventListener('click', function() {
+            const input = $('referralLink');
+            input.select();
+            document.execCommand('copy');
+            this.textContent = 'কপি হয়েছে!';
+            setTimeout(() => this.textContent = 'কপি', 2000);
+        });
+
+        // ============================================================
+        //  সাপোর্ট ফর্ম
+        // ============================================================
+        $('supportSendBtn').addEventListener('click', function() {
+            const subject = $('supportSubject').value.trim();
+            const message = $('supportMessage').value.trim();
+            if (!subject || !message) return alert('বিষয় ও বার্তা দিন!');
+            alert('✅ আপনার বার্তা পাঠানো হয়েছে। আমরা শীঘ্রই যোগাযোগ করব।');
+            $('supportSubject').value = '';
+            $('supportMessage').value = '';
+        });
+
+        // ============================================================
+        //  থিম টগল
+        // ============================================================
+        const themeToggle = $('themeToggle');
+        const settingsThemeToggle = $('settingsThemeToggle');
+        const body = document.body;
+        let dark = localStorage.getItem('bt-theme') === 'dark';
+        if (dark) body.classList.add('dark');
+        themeToggle.addEventListener('click', function() {
+            body.classList.toggle('dark');
+            localStorage.setItem('bt-theme', body.classList.contains('dark') ? 'dark' : 'light');
+            this.querySelector('i').className = body.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+            settingsThemeToggle.classList.toggle('active', body.classList.contains('dark'));
+        });
+        settingsThemeToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            body.classList.toggle('dark');
+            localStorage.setItem('bt-theme', body.classList.contains('dark') ? 'dark' : 'light');
+            themeToggle.querySelector('i').className = body.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+        });
+        if (dark) {
+            themeToggle.querySelector('i').className = 'fas fa-sun';
+            settingsThemeToggle.classList.add('active');
+        }
+
+        // ============================================================
+        //  সাইডবার টগল
+        // ============================================================
+        const sidebar = $('sidebar');
+        const overlay = $('sidebarOverlay');
+        $('sidebarToggle').addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        });
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        });
+
+        // ============================================================
+        //  নেভিগেশন (SPA)
+        // ============================================================
+        const pageSections = document.querySelectorAll('.page-section');
+        const navLinks = document.querySelectorAll('[data-page]');
+
+        function navigateTo(pageId) {
+            pageSections.forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('page-' + pageId);
+            if (target) target.classList.add('active');
+            document.querySelectorAll('.sidebar-nav a, .bottom-nav a, .header-left .brand-sm').forEach(a => {
+                if (a.dataset?.page) {
+                    a.classList.toggle('active', a.dataset.page === pageId);
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (window.innerWidth < 1024) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.dataset.page;
+                if (page) navigateTo(page);
+                document.getElementById('dropdownMenu').classList.remove('open');
+            });
+        });
+
+        document.getElementById('userDropdownBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('dropdownMenu').classList.toggle('open');
+        });
+        document.addEventListener('click', function() {
+            document.getElementById('dropdownMenu').classList.remove('open');
+        });
+
+        // ============================================================
+        //  প্রি-লোডার হাইড
+        // ============================================================
+        window.addEventListener('load', function() {
+            document.getElementById('preloader').classList.add('hide');
+        });
+
+        console.log('🚀 BROTHERS TASK · User Panel with Task Modal & Screenshot Upload (FIXED)');
+    </script>
+</body>
+</html>

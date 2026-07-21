@@ -17,6 +17,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js">
     </script>
 
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js">
+    </script>
+
     <style>
         /* ========== ROOT ========== */
         :root {
@@ -155,6 +159,12 @@
         .user-info .uid {
             font-size: 12px;
             color: var(--text-secondary);
+        }
+        .user-info .username-tag {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 2px;
         }
 
         .balance-chip {
@@ -1770,6 +1780,7 @@
                 <div class="user-info">
                     <h4 id="header-name">Loading...</h4>
                     <span class="uid" id="user-rank">Bronze</span>
+                    <span class="username-tag" id="username-tag"></span>
                 </div>
             </div>
             <div class="balance-chip">
@@ -2020,7 +2031,6 @@
                 <div class="content" id="detail-description-text">কিভাবে এই টাস্ক সম্পন্ন করবেন তার বিস্তারিত নির্দেশনা এখানে দেওয়া থাকবে।</div>
             </div>
 
-            <!-- লিংক সেকশন — কিন্তু লিংক নেই, শুধু দেখানোর জন্য -->
             <div class="visit-now-section">
                 <div class="visit-label">
                     <i class="fas fa-external-link-alt"></i>
@@ -2081,6 +2091,58 @@
 
     <script>
         // ==========================================================
+        // 📱 TELEGRAM থেকে ইউজার ডেটা নেওয়া (অটো)
+        // ==========================================================
+        const tg = window.Telegram?.WebApp;
+        const tgUser = tg?.initDataUnsafe?.user || {};
+
+        // ইউজার আইডি
+        let userId = tgUser?.id?.toString() || localStorage.getItem('brothers_user_id');
+        if (!userId) {
+            userId = 'USER_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            localStorage.setItem('brothers_user_id', userId);
+        } else {
+            localStorage.setItem('brothers_user_id', userId);
+        }
+
+        // ইউজারনেম ও নাম
+        const tgUsername = tgUser?.username || '';
+        const tgFirstName = tgUser?.first_name || 'User';
+        const tgLastName = tgUser?.last_name || '';
+        const fullName = tgFirstName + (tgLastName ? ' ' + tgLastName : '');
+        const tgPhoto = tgUser?.photo_url || '';
+
+        console.log('👤 Telegram User:', { userId, tgUsername, fullName });
+
+        // ==========================================================
+        // 🔗 রেফারেল লিংক (অটো)
+        // ==========================================================
+        const BOT_USERNAME = 'brotherstask_bot';
+        const referLink = `https://t.me/${BOT_USERNAME}?start=${userId}`;
+
+        // ==========================================================
+        // 🔗 রেফারার আইডি পাওয়া
+        // ==========================================================
+        function getReferrerId() {
+            // 1. Telegram WebApp থেকে
+            if (tg?.initDataUnsafe?.start_param) {
+                return tg.initDataUnsafe.start_param;
+            }
+            // 2. URL থেকে
+            const urlParams = new URLSearchParams(window.location.search);
+            const ref = urlParams.get('ref') || urlParams.get('startapp');
+            if (ref) return ref;
+            // 3. localStorage থেকে
+            return localStorage.getItem('referred_by') || null;
+        }
+
+        const referrerId = getReferrerId();
+        if (referrerId) {
+            localStorage.setItem('referred_by', referrerId);
+            console.log('🔗 Referred by:', referrerId);
+        }
+
+        // ==========================================================
         // FIREBASE CONFIG
         // ==========================================================
         const firebaseConfig = {
@@ -2096,15 +2158,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const firestore = firebase.firestore();
-
-        // ==========================================================
-        // USER ID
-        // ==========================================================
-        let userId = localStorage.getItem('brothers_user_id');
-        if (!userId) {
-            userId = 'USER_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-            localStorage.setItem('brothers_user_id', userId);
-        }
 
         // ==========================================================
         // CONSTANTS
@@ -2348,7 +2401,6 @@
             if (btn) { btn.disabled = true;
                 btn.textContent = '⏳ Loading...'; }
 
-            // Simulate ad watch (no actual ad network)
             showToast('📺 Watching ad... (simulated)');
             setTimeout(async () => {
                 await completeAdTask(adId);
@@ -2503,9 +2555,6 @@
                 'কিভাবে এই জব সম্পন্ন করবেন তার বিস্তারিত নির্দেশনা এখানে দেওয়া থাকবে।';
             document.getElementById('detail-username-input').value = '';
 
-            // লিংক নেই — শুধু দেখানোর জন্য
-            // visit link section already has no link
-
             document.getElementById('task-detail-modal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -2608,8 +2657,6 @@
             document.getElementById('detail-description-text').textContent = task.instructions ||
                 'কিভাবে এই টাস্ক সম্পন্ন করবেন তার বিস্তারিত নির্দেশনা এখানে দেওয়া থাকবে।';
             document.getElementById('detail-username-input').value = '';
-
-            // লিংক নেই
 
             document.getElementById('task-detail-modal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -2897,7 +2944,7 @@
         }
 
         // ==========================================================
-        // UPDATE UI
+        // UPDATE UI — Telegram ডেটা দেখানো
         // ==========================================================
         async function updateUI() {
             const doc = await firestore.collection('users').doc(userId).get();
@@ -2907,14 +2954,24 @@
             }
             await updateUserType(userId);
 
-            let profilePic = userData.profilePic || '';
-            const userName = userData.userName || 'User';
+            // Telegram থেকে নাম (যদি থাকে)
+            const displayName = fullName || userData?.userName || 'User';
+            const profilePic = tgPhoto || userData?.profilePic || '';
 
-            setAvatar('header-avatar', 'header-img', 'header-fallback', profilePic, userName);
-            setAvatar('menu-avatar-container', 'menu-avatar-img', 'menu-avatar-fallback', profilePic, userName);
+            setAvatar('header-avatar', 'header-img', 'header-fallback', profilePic, displayName);
+            setAvatar('menu-avatar-container', 'menu-avatar-img', 'menu-avatar-fallback', profilePic, displayName);
 
-            document.getElementById('header-name').innerHTML = `${userName} <i class="fas fa-check-circle"></i>`;
-            document.getElementById('menu-name').innerText = userName;
+            document.getElementById('header-name').innerHTML = `${displayName} <i class="fas fa-check-circle"></i>`;
+            document.getElementById('menu-name').innerText = displayName;
+
+            // ইউজারনেম দেখানো
+            const usernameTag = document.getElementById('username-tag');
+            if (tgUsername) {
+                usernameTag.textContent = `@${tgUsername}`;
+                usernameTag.style.display = 'block';
+            } else {
+                usernameTag.style.display = 'none';
+            }
 
             document.getElementById('main-balance').innerText = currentBalance.toFixed(2);
             document.getElementById('header-balance').innerText = currentBalance.toFixed(2);
@@ -2923,8 +2980,8 @@
             document.getElementById('menu-uid').innerText = `UID: ${userId}`;
             document.getElementById('disp-my-ref').textContent = userData.totalReferrals || 0;
 
-            const referLink = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
-            document.getElementById('refer-link-input').value = referLink;
+            // 🔗 রেফারেল লিংক (টেলিগ্রাম ডিপ লিংক)
+            document.getElementById('refer-link-input').value = `https://t.me/${BOT_USERNAME}?start=${userId}`;
 
             let rank = "Bronze";
             if (currentBalance >= 500) rank = "Gold";
@@ -3116,7 +3173,7 @@
         }
 
         // ==========================================================
-        // LEADERBOARD — ক্লিয়ার (কোনো ডেটা দেখাবে না)
+        // LEADERBOARD
         // ==========================================================
         let currentLeaderboardMode = 'earning';
 
@@ -3134,7 +3191,6 @@
             const top3Container = document.getElementById('top-three-container');
             const listContainer = document.getElementById('leaderboard-list');
 
-            // সবসময় ফাঁকা দেখাবে — শুরু থেকেই নতুন
             top3Container.innerHTML = `
                 <div style="grid-column:1/-1;text-align:center;padding:30px 10px;color:var(--text-secondary);">
                     <i class="fas fa-users" style="font-size:40px;color:var(--primary-light);display:block;margin-bottom:12px;"></i>
@@ -3161,11 +3217,15 @@
             if (!doc.exists) {
                 const adData = {};
                 for (let i = 1; i <= TOTAL_ADS; i++) { adData[i] = { count: 0, lastWatched: 0 }; }
-                const userName = "User_" + userId.substring(0, 6);
+
+                // Telegram ডেটা ব্যবহার করুন
+                const userName = fullName || tgUsername || 'User_' + userId.substring(0, 6);
+                const profilePic = tgPhoto || '';
 
                 const newUserData = {
                     userName: userName,
                     userId: userId,
+                    tgUsername: tgUsername || '',
                     createdAt: new Date().toISOString(),
                     balance: 0,
                     totalAds: 0,
@@ -3174,7 +3234,7 @@
                     vipEligible: false,
                     referredBy: referrerId || null,
                     referralBonusClaimed: false,
-                    profilePic: '',
+                    profilePic: profilePic,
                     adData: adData,
                     claimedMilestones: {},
                     taskSubmissions: {}
@@ -3185,9 +3245,9 @@
             return doc.data();
         }
 
-        function getReferrerId() {
+        function getReferrerIdFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('ref');
+            return urlParams.get('ref') || urlParams.get('startapp');
         }
 
         async function checkAndGiveReferralBonus() {
@@ -3222,7 +3282,8 @@
         async function initApp() {
             await loadSettings();
 
-            const referrerId = getReferrerId();
+            // রেফারার আইডি পাওয়া
+            const referrerId = getReferrerIdFromUrl() || referrerId;
 
             try {
                 const data = await createNewUser(userId, referrerId);
@@ -3291,7 +3352,6 @@
                 loadWithdrawHistory();
                 renderActiveTasks();
                 renderMicroJobs();
-                // লিডারবোর্ড ফাঁকা
                 loadLeaderboard('earning');
 
                 document.querySelectorAll('.nav-item, .nav-fab').forEach(el => {
